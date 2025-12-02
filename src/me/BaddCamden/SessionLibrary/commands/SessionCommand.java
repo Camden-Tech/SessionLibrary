@@ -1,14 +1,20 @@
 package me.BaddCamden.SessionLibrary.commands;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 
 import me.BaddCamden.SessionLibrary.Session;
 import me.BaddCamden.SessionLibrary.SessionManager;
 
-public class SessionCommand implements CommandExecutor {
+public class SessionCommand implements CommandExecutor, TabCompleter {
 
     private final SessionManager plugin;
 
@@ -137,5 +143,39 @@ public class SessionCommand implements CommandExecutor {
         }
 
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (!sender.hasPermission("sessionlibrary.admin")) {
+            return Collections.emptyList();
+        }
+
+        List<String> subcommands = Arrays.asList(
+                "start", "end", "reset", "stop", "duration", "autostart", "autostartbuffer");
+
+        if (args.length == 1) {
+            List<String> completions = new ArrayList<>();
+            for (String option : subcommands) {
+                if (option.startsWith(args[0].toLowerCase())) {
+                    completions.add(option);
+                }
+            }
+            return completions;
+        }
+
+        if (args.length == 2) {
+            String sub = args[0].toLowerCase();
+            switch (sub) {
+                case "duration":
+                    return Collections.singletonList(String.valueOf(SessionManager.defaultDuration));
+                case "autostartbuffer":
+                    return Collections.singletonList(String.valueOf(SessionManager.autostartBuffer));
+                default:
+                    break;
+            }
+        }
+
+        return Collections.emptyList();
     }
 }

@@ -2,6 +2,14 @@
 session-duration: 3600       # Default session duration in seconds (1 hour)
 autostart: false
 autostart-buffer: 60         # Seconds before auto-start triggers
+end-grace-period-seconds: 60 # Time given to players to log off after a session ends
+
+scheduled-start:
+  enabled: false
+  # ISO-8601 date time without zone, e.g. 2024-12-31T23:59:00
+  datetime: ""
+  # Zone ID, e.g. UTC or America/New_York
+  timezone: "UTC"
 
 messages:
   # Global broadcast messages
@@ -12,6 +20,7 @@ messages:
   session-last-60: "§41 minute remaining!"
   session-last-30: "§430 seconds remaining!"
   session-countdown: "§cCountdown: %seconds% seconds"
+  session-ending: "§cThe session has ended. Please log off within %seconds% seconds."
 
   # Command / private messages
   no-permission: "§cYou do not have permission to use this command."

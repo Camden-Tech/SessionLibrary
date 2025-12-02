@@ -2,11 +2,15 @@ package me.BaddCamden.SessionLibrary;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import me.BaddCamden.SessionLibrary.commands.SessionCommand;
 import me.BaddCamden.SessionLibrary.events.SessionAutostartEvent;
@@ -29,6 +33,12 @@ public class SessionManager extends JavaPlugin {
     public static boolean autostart;
     public static int autostartBuffer;
     public static int defaultDuration;
+    public static boolean scheduledStartEnabled;
+    public static LocalDateTime scheduledStartDateTime;
+    public static ZoneId scheduledStartZone;
+
+    private BukkitRunnable scheduledStartMonitor;
+    private boolean scheduledStartTriggered;
 
     @Override
     public void onEnable() {
@@ -56,10 +66,15 @@ public class SessionManager extends JavaPlugin {
         defaultDuration = config.getInt("session-duration", 3600);
         autostart = config.getBoolean("autostart", false);
         autostartBuffer = config.getInt("autostart-buffer", 60);
+        scheduledStartEnabled = config.getBoolean("scheduled-start.enabled", false);
+        scheduledStartDateTime = parseScheduledDate(config.getString("scheduled-start.datetime", ""));
+        scheduledStartZone = parseZoneId(config.getString("scheduled-start.timezone", ZoneId.systemDefault().getId()));
 
         // Register command
         if (getCommand("session") != null) {
-            getCommand("session").setExecutor(new SessionCommand(this));
+            SessionCommand sessionCommand = new SessionCommand(this);
+            getCommand("session").setExecutor(sessionCommand);
+            getCommand("session").setTabCompleter(sessionCommand);
         } else {
             getLogger().severe("Command 'session' not found in plugin.yml!");
         }
@@ -74,6 +89,13 @@ public class SessionManager extends JavaPlugin {
                 Bukkit.getPluginManager().callEvent(new SessionAutostartEvent(currentSession));
                 currentSession.start();
             }, autostartBuffer * 20L); // seconds -> ticks
+        }
+
+        // Schedule specific start date/time if configured
+        if (scheduledStartEnabled && scheduledStartDateTime != null) {
+            startScheduledStartMonitor();
+        } else if (scheduledStartEnabled) {
+            getLogger().warning("Scheduled start is enabled but datetime is invalid. Please check config.");
         }
     }
 
@@ -91,11 +113,22 @@ public class SessionManager extends JavaPlugin {
         config.set("session-duration", defaultDuration);
         config.set("autostart", autostart);
         config.set("autostart-buffer", autostartBuffer);
+        config.set("scheduled-start.enabled", scheduledStartEnabled);
+        config.set("scheduled-start.datetime", scheduledStartDateTime != null
+                ? scheduledStartDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                : "");
+        config.set("scheduled-start.timezone", scheduledStartZone != null ? scheduledStartZone.getId()
+                : ZoneId.systemDefault().getId());
         saveConfig();
 
         // Stop session cleanly if running
         if (currentSession != null && currentSession.isRunning()) {
             currentSession.stopSession();
+        }
+
+        if (scheduledStartMonitor != null) {
+            scheduledStartMonitor.cancel();
+            scheduledStartMonitor = null;
         }
 
         getLogger().info("SessionManager disabled.");
@@ -154,6 +187,18 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    public static boolean isScheduledStartEnabled() {
+        return scheduledStartEnabled;
+    }
+
+    public static LocalDateTime getScheduledStartDateTime() {
+        return scheduledStartDateTime;
+    }
+
+    public static ZoneId getScheduledStartZone() {
+        return scheduledStartZone;
+    }
+
     /**
      * Start a new session from another plugin.
      *
@@ -190,5 +235,60 @@ public class SessionManager extends JavaPlugin {
         if (currentSession != null) {
             currentSession.reset();
         }
+    }
+
+    private LocalDateTime parseScheduledDate(String dateString) {
+        if (dateString == null || dateString.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (Exception ex) {
+            getLogger().warning("Unable to parse scheduled-start datetime. Expected ISO_LOCAL_DATE_TIME format.");
+            return null;
+        }
+    }
+
+    private ZoneId parseZoneId(String zoneString) {
+        try {
+            return ZoneId.of(zoneString);
+        } catch (Exception ex) {
+            getLogger().warning("Invalid timezone provided for scheduled-start. Using system default.");
+            return ZoneId.systemDefault();
+        }
+    }
+
+    private void startScheduledStartMonitor() {
+        if (scheduledStartMonitor != null) {
+            scheduledStartMonitor.cancel();
+        }
+
+        scheduledStartTriggered = false;
+        scheduledStartMonitor = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (scheduledStartTriggered) {
+                    cancel();
+                    return;
+                }
+
+                if (currentSession != null && currentSession.isRunning()) {
+                    return;
+                }
+
+                LocalDateTime now = LocalDateTime.now(scheduledStartZone);
+                if (!now.isBefore(scheduledStartDateTime)) {
+                    scheduledStartTriggered = true;
+                    currentSession = new Session(SessionManager.this, defaultDuration, true);
+                    Bukkit.getPluginManager().callEvent(new SessionAutostartEvent(currentSession));
+                    currentSession.start();
+                    cancel();
+                }
+            }
+        };
+
+        // check every 30 seconds
+        scheduledStartMonitor.runTaskTimer(this, 0L, 600L);
     }
 }
