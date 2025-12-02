@@ -1,0 +1,17 @@
+name: SessionLibrary
+main: me.BaddCamden.SessionLibrary.SessionManager
+version: 1.0
+api-version: 1.21
+description: Session-based server control plugin with events and hooks
+author: BaddCamden
+
+commands:
+  session:
+    description: Session management commands
+    usage: /<command> <start|end|reset|stop|duration|autostart|autostartbuffer>
+    permission: sessionmanager.admin
+
+permissions:
+  sessionlibrary.admin:
+    description: Allows using session management commands
+    default: op

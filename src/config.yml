@@ -1,0 +1,31 @@
+# SessionManager Config
+session-duration: 3600       # Default session duration in seconds (1 hour)
+autostart: false
+autostart-buffer: 60         # Seconds before auto-start triggers
+
+messages:
+  # Global broadcast messages
+  session-start: "§aA new session has started!"
+  session-end: "§cThe session has ended!"
+  session-halfway: "§eThe session is halfway done!"
+  session-last-10: "§c10 minutes remaining in the session!"
+  session-last-60: "§41 minute remaining!"
+  session-last-30: "§430 seconds remaining!"
+  session-countdown: "§cCountdown: %seconds% seconds"
+
+  # Command / private messages
+  no-permission: "§cYou do not have permission to use this command."
+  player-only: "§cOnly players can use this command."
+  usage: "§eUsage: /session <start|end|reset|stop|duration|autostart|autostartbuffer>"
+
+  session-start-admin: "§aSession started."
+  session-reset-admin: "§aSession timer reset."
+  session-end-admin: "§cSession ended. Server shutting down..."
+  session-stop-admin: "§cSession stopped and session count reset."
+
+  session-duration-set: "§aSession duration set to %seconds% seconds."
+  session-duration-invalid: "§cInvalid number for duration."
+
+  autostart-toggled: "§eAutostart set to %value%."
+  autostartbuffer-set: "§eAutostart buffer set to %seconds% seconds."
+  autostartbuffer-invalid: "§cInvalid number for autostart buffer."
