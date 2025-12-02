@@ -64,6 +64,10 @@ public class Session {
 
     public void start() {
         if (running) return;
+        if (task != null) {
+            task.cancel();
+        }
+        timeLeft = duration;
         running = true;
         endingSequence = false;
 
@@ -133,6 +137,12 @@ public class Session {
         if (endingSequence) return;
         endingSequence = true;
 
+        int graceSeconds = Math.max(1, SessionManager.config.getInt("end-grace-period-seconds", 60));
+        broadcastMessage(SessionManager.config.getString(
+                "messages.session-ending",
+                "Session has ended. Please log off within %seconds% seconds.")
+                .replace("%seconds%", String.valueOf(graceSeconds)));
+
         Bukkit.getPluginManager().callEvent(new SessionEndSequenceStartEvent(this));
 
         // Let hooks handle custom end behavior first
@@ -149,9 +159,9 @@ public class Session {
             }
         }
 
-        // Default logic: 1 minute silent countdown then end()
+        // Default logic: countdown grace period then end()
         new BukkitRunnable() {
-            int endTimer = 60;
+            int endTimer = graceSeconds;
 
             @Override
             public void run() {
