@@ -4,6 +4,19 @@ autostart: false
 autostart-buffer: 60         # Seconds before auto-start triggers
 end-grace-period-seconds: 60 # Time given to players to log off after a session ends
 
+calendar-auto-session:
+  enabled: false
+  mode: specific             # specific|daily|day-of-week|day-of-month|day-of-year|custom-counter
+  timezone: "UTC"             # Time zone ID used for calendar evaluation
+  specific-datetime: ""        # ISO-8601 local date-time (e.g. 2024-12-31T23:59:00)
+  daily-time: "00:00"          # HH:mm (24h) daily trigger time
+  days-of-week: []            # e.g. [MONDAY, FRIDAY]
+  days-of-month: []           # e.g. [1, 15, 30]
+  days-of-year: []            # e.g. [1, 100, 365]
+  custom-counter-target: 0    # Trigger when day counter reaches this value
+  duration-override: 0        # Optional override duration (seconds); 0 uses default
+  auto-end: true              # Automatically end the session after duration
+
 scheduled-start:
   enabled: false
   # ISO-8601 date time without zone, e.g. 2024-12-31T23:59:00
@@ -21,6 +34,8 @@ messages:
   session-last-30: "§430 seconds remaining!"
   session-countdown: "§cCountdown: %seconds% seconds"
   session-ending: "§cThe session has ended. Please log off within %seconds% seconds."
+  calendar-session-start: "§aA calendar session has started (mode: %mode%)."
+  calendar-session-auto-end: "§eThis calendar session will auto-end in %seconds% seconds."
 
   # Command / private messages
   no-permission: "§cYou do not have permission to use this command."
