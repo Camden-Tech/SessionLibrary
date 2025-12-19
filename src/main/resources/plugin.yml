@@ -1,0 +1,26 @@
+name: DayUtils
+main: me.BaddCamden.DayUtils.DayUtilsPlugin
+version: 1.0.0
+api-version: 1.21
+author: BaddCamden
+description: Utility plugin integrating with SessionLibrary day counter.
+softdepend:
+  - SessionLibrary
+
+commands:
+  dayutils:
+    description: Show the current day and SessionLibrary day counter.
+    usage: /dayutils
+    permission: dayutils.status
+  dayutilsreload:
+    description: Reload the DayUtils configuration.
+    usage: /dayutilsreload
+    permission: dayutils.reload
+
+permissions:
+  dayutils.status:
+    description: Allows viewing day information.
+    default: true
+  dayutils.reload:
+    description: Allows reloading DayUtils configuration.
+    default: op

@@ -1,0 +1,7 @@
+# DayUtils configuration
+# All values are cached on startup. Use /dayutilsreload to apply changes at runtime.
+broadcast: true
+# Timezone ID used when displaying the current date
+timezone: UTC
+# Optional offset (positive or negative) applied to the displayed day
+default-day-offset: 0
