@@ -24,9 +24,14 @@
    <sourceDirectory>src</sourceDirectory>
     <resources>
         <resource>
+            <directory>src/main/resources</directory>
+        </resource>
+        <resource>
             <directory>src</directory>
             <excludes>
                 <exclude>**/*.java</exclude>
+                <exclude>plugin.yml</exclude>
+                <exclude>config.yml</exclude>
             </excludes>
         </resource>
     </resources>
@@ -38,6 +43,25 @@
         <source>17</source>
         <target>17</target>
       </configuration>
+    </plugin>
+    <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>build-helper-maven-plugin</artifactId>
+      <version>3.5.0</version>
+      <executions>
+        <execution>
+          <id>add-dayutils-source</id>
+          <phase>generate-sources</phase>
+          <goals>
+            <goal>add-source</goal>
+          </goals>
+          <configuration>
+            <sources>
+              <source>src/main/java</source>
+            </sources>
+          </configuration>
+        </execution>
+      </executions>
     </plugin>
   </plugins>
 </build>
