@@ -68,6 +68,9 @@ public class SessionManager extends JavaPlugin {
     private LocalDate counterLastUpdatedDate;
     private int dayCounterValue;
 
+    /**
+     * Initialize plugin state, load configuration files, and register commands and tasks.
+     */
     @Override
     public void onEnable() {
         instance = this;
@@ -144,6 +147,9 @@ public class SessionManager extends JavaPlugin {
         startCalendarMonitor();
     }
 
+    /**
+     * Persist runtime state back to disk, cancel background monitors, and stop any running session.
+     */
     @Override
     public void onDisable() {
         // Save in-memory session count to data file
@@ -210,62 +216,132 @@ public class SessionManager extends JavaPlugin {
     // API / control methods for other plugins
     // ------------------------------------------------------------------------
 
+    /**
+     * Access the singleton plugin instance set during {@link #onEnable()}.
+     *
+     * @return loaded SessionManager instance or null if not yet enabled.
+     */
     public static SessionManager getInstance() {
         return instance;
     }
 
+    /**
+     * Get the currently active Session object, if any.
+     *
+     * @return current session or null when none exists.
+     */
     public static Session getCurrentSession() {
         return currentSession;
     }
 
+    /**
+     * Determine whether a session is currently running.
+     *
+     * @return true when a session exists and is active.
+     */
     public static boolean hasActiveSession() {
         return currentSession != null && currentSession.isRunning();
     }
 
+    /**
+     * Report the number of sessions completed since the last reset.
+     *
+     * @return in-memory session counter.
+     */
     public static int getSessionCount() {
         return sessionCount;
     }
 
+    /**
+     * Override the session completion counter (persisted on disable).
+     *
+     * @param count new counter value.
+     */
     public static void setSessionCount(int count) {
         sessionCount = count;
     }
 
+    /**
+     * Read the default session duration configured for new sessions.
+     *
+     * @return number of seconds a new session should last.
+     */
     public static int getDefaultDuration() {
         return defaultDuration;
     }
 
+    /**
+     * Update the default session length used when no override is provided.
+     *
+     * @param seconds duration in seconds; ignored if non-positive.
+     */
     public static void setDefaultDuration(int seconds) {
         if (seconds > 0) {
             defaultDuration = seconds;
         }
     }
 
+    /**
+     * Check if sessions should start automatically on server boot.
+     *
+     * @return true when autostart is enabled.
+     */
     public static boolean isAutostartEnabled() {
         return autostart;
     }
 
+    /**
+     * Enable or disable automatic session startup after boot.
+     *
+     * @param enabled desired autostart flag.
+     */
     public static void setAutostartEnabled(boolean enabled) {
         autostart = enabled;
     }
 
+    /**
+     * Retrieve the configured buffer (in seconds) before autostart triggers.
+     *
+     * @return autostart delay in seconds.
+     */
     public static int getAutostartBuffer() {
         return autostartBuffer;
     }
 
+    /**
+     * Update the autostart buffer while enforcing non-negative values.
+     *
+     * @param bufferSeconds seconds to wait before auto-starting a session.
+     */
     public static void setAutostartBuffer(int bufferSeconds) {
         if (bufferSeconds >= 0) {
             autostartBuffer = bufferSeconds;
         }
     }
 
+    /**
+     * Check if a scheduled start time should be monitored.
+     *
+     * @return true when scheduled start monitoring is enabled.
+     */
     public static boolean isScheduledStartEnabled() {
         return scheduledStartEnabled;
     }
 
+    /**
+     * Access the configured scheduled start datetime.
+     *
+     * @return local datetime or null when not configured.
+     */
     public static LocalDateTime getScheduledStartDateTime() {
         return scheduledStartDateTime;
     }
 
+    /**
+     * Access the time zone used for scheduled start calculations.
+     *
+     * @return zone id for scheduled start.
+     */
     public static ZoneId getScheduledStartZone() {
         return scheduledStartZone;
     }
@@ -276,6 +352,13 @@ public class SessionManager extends JavaPlugin {
      * @param durationSeconds duration in seconds, or <= 0 to use defaultDuration.
      * @param autoStartFlag whether this was auto-started (for your own semantics).
      * @return the started Session instance.
+     */
+    /**
+     * Start a new session or return the existing one if already running.
+     *
+     * @param durationSeconds desired duration, or <=0 to fall back to {@link #defaultDuration}.
+     * @param autoStartFlag   metadata flag indicating whether the start was automatic.
+     * @return active session instance.
      */
     public static Session startNewSession(int durationSeconds, boolean autoStartFlag) {
         if (instance == null) {
@@ -290,24 +373,39 @@ public class SessionManager extends JavaPlugin {
         return currentSession;
     }
 
+    /**
+     * Begin the end sequence on the current session if one exists.
+     */
     public static void endSession() {
         if (currentSession != null) {
             currentSession.beginEndSequence();
         }
     }
 
+    /**
+     * Stop and reset the current session without firing end events.
+     */
     public static void stopSession() {
         if (currentSession != null) {
             currentSession.stopSession();
         }
     }
 
+    /**
+     * Reset the timer on the active session back to its original duration.
+     */
     public static void resetSessionTimer() {
         if (currentSession != null) {
             currentSession.reset();
         }
     }
 
+    /**
+     * Parse an ISO_LOCAL_DATE_TIME string into a {@link LocalDateTime}.
+     *
+     * @param dateString raw value from configuration.
+     * @return parsed datetime or null when invalid.
+     */
     private LocalDateTime parseScheduledDate(String dateString) {
         if (dateString == null || dateString.isEmpty()) {
             return null;
@@ -321,6 +419,12 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Parse a timezone identifier while falling back to the system default.
+     *
+     * @param zoneString string ID from configuration.
+     * @return a valid {@link ZoneId}.
+     */
     private ZoneId parseZoneId(String zoneString) {
         try {
             return ZoneId.of(zoneString);
@@ -330,6 +434,12 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Parse a daily time (HH:mm) from configuration.
+     *
+     * @param timeString raw time string.
+     * @return {@link LocalTime} or null when invalid.
+     */
     private LocalTime parseLocalTime(String timeString) {
         if (timeString == null || timeString.isEmpty()) {
             return null;
@@ -343,6 +453,12 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Parse a calendar date using ISO-8601 formatting.
+     *
+     * @param dateString raw date string.
+     * @return {@link LocalDate} value or null.
+     */
     private LocalDate parseLocalDate(String dateString) {
         if (dateString == null || dateString.isEmpty()) {
             return null;
@@ -355,6 +471,9 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Load calendar-based scheduling rules from configuration.
+     */
     private void loadCalendarConfig() {
         calendarAutoSessionEnabled = config.getBoolean("calendar-auto-session.enabled", false);
         calendarMode = config.getString("calendar-auto-session.mode", "specific").toLowerCase();
@@ -380,6 +499,9 @@ public class SessionManager extends JavaPlugin {
         calendarSpecificTriggered = false;
     }
 
+    /**
+     * Load the persisted day counter values from disk.
+     */
     private void loadDayCounter() {
         dayCounterValue = dayCounterData.getInt("day-count", 0);
         counterLastUpdatedDate = parseLocalDate(dayCounterData.getString("last-updated-date", ""));
@@ -387,6 +509,9 @@ public class SessionManager extends JavaPlugin {
         lastCounterTriggerValue = dayCounterData.getInt("last-counter-trigger", 0);
     }
 
+    /**
+     * Persist the in-memory day counter values to the YAML file.
+     */
     private void saveDayCounter() {
         dayCounterData.set("day-count", dayCounterValue);
         dayCounterData.set("last-updated-date", counterLastUpdatedDate != null ? counterLastUpdatedDate.toString() : "");
@@ -399,6 +524,11 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Increment the day counter when dates change to support calendar triggers.
+     *
+     * @param now current timestamp in the configured zone.
+     */
     private void updateDayCounterIfNeeded(ZonedDateTime now) {
         LocalDate today = now.toLocalDate();
         if (counterLastUpdatedDate == null) {
@@ -415,6 +545,11 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Get the current value of the persisted day counter.
+     *
+     * @return day counter or 0 if the plugin is not yet initialized.
+     */
     public static int getDayCounterValue() {
         if (instance == null) {
             return 0;
@@ -422,6 +557,9 @@ public class SessionManager extends JavaPlugin {
         return instance.dayCounterValue;
     }
 
+    /**
+     * Reset the day counter metrics and immediately persist them.
+     */
     public static void resetDayCounter() {
         if (instance != null) {
             instance.dayCounterValue = 0;
@@ -432,6 +570,9 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Start (or restart) the repeating task that checks calendar-based triggers.
+     */
     private void startCalendarMonitor() {
         if (calendarMonitor != null) {
             calendarMonitor.cancel();
@@ -455,6 +596,9 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Evaluate configured calendar rules and start sessions when eligibility is met.
+     */
     private void runCalendarCheck() {
         ZoneId zone = calendarZone != null ? calendarZone : ZoneId.systemDefault();
         ZonedDateTime now = ZonedDateTime.now(zone);
@@ -521,6 +665,12 @@ public class SessionManager extends JavaPlugin {
         }
     }
 
+    /**
+     * Compute the next datetime when an auto-session could start, used for logging.
+     *
+     * @param now current reference time.
+     * @return next eligible timestamp or null if none can be determined.
+     */
     private ZonedDateTime computeNextEligibleTime(ZonedDateTime now) {
         ZoneId zone = calendarZone != null ? calendarZone : ZoneId.systemDefault();
         LocalTime timeForCandidate = calendarDailyTime != null ? calendarDailyTime : LocalTime.MIDNIGHT;
@@ -562,11 +712,21 @@ public class SessionManager extends JavaPlugin {
         return null;
     }
 
+    /**
+     * Record the date when an auto-session was triggered to avoid duplicate firings.
+     *
+     * @param date date of the trigger.
+     */
     private void markTriggerConsumed(LocalDate date) {
         lastCalendarTriggerDate = date;
         saveDayCounter();
     }
 
+    /**
+     * Create and start a new session based on calendar eligibility and broadcast notifications.
+     *
+     * @param now timestamp of the trigger.
+     */
     private void triggerCalendarSession(ZonedDateTime now) {
         if (currentSession != null && currentSession.isRunning()) {
             return;
@@ -596,6 +756,9 @@ public class SessionManager extends JavaPlugin {
         markTriggerConsumed(now.toLocalDate());
     }
 
+    /**
+     * Begin monitoring for a scheduled start datetime and start a session when reached.
+     */
     private void startScheduledStartMonitor() {
         if (scheduledStartMonitor != null) {
             scheduledStartMonitor.cancel();
