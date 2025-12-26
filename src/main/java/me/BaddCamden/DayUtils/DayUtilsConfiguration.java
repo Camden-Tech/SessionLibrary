@@ -39,30 +39,66 @@ public class DayUtilsConfiguration {
         plugin.saveConfig();
     }
 
+    /**
+     * Determine whether status messages should be broadcast to all players.
+     *
+     * @return true when broadcast is enabled.
+     */
     public boolean shouldBroadcastStatus() {
         return broadcastStatus;
     }
 
+    /**
+     * Retrieve the configured timezone identifier used for date calculations.
+     *
+     * @return timezone ID string.
+     */
     public String getTimezoneId() {
         return timezoneId;
     }
 
+    /**
+     * Get the default day offset applied to the displayed date.
+     *
+     * @return offset in days.
+     */
     public int getDefaultDayOffset() {
         return defaultDayOffset;
     }
 
+    /**
+     * Update the timezone identifier and defer persistence until {@link #save()}.
+     *
+     * @param timezoneId new timezone ID.
+     */
     public void setTimezoneId(String timezoneId) {
         this.timezoneId = timezoneId;
     }
 
+    /**
+     * Enable or disable broadcasting of status messages.
+     *
+     * @param broadcastStatus desired broadcast flag.
+     */
     public void setBroadcastStatus(boolean broadcastStatus) {
         this.broadcastStatus = broadcastStatus;
     }
 
+    /**
+     * Configure the default day offset used when reporting the date.
+     *
+     * @param defaultDayOffset offset in days.
+     */
     public void setDefaultDayOffset(int defaultDayOffset) {
         this.defaultDayOffset = defaultDayOffset;
     }
 
+    /**
+     * Validate a timezone string and return a safe identifier.
+     *
+     * @param configuredZone raw value from configuration.
+     * @return sanitized timezone ID.
+     */
     private String parseTimezone(String configuredZone) {
         try {
             return java.time.ZoneId.of(configuredZone).getId();

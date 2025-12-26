@@ -31,6 +31,13 @@ public class Session {
 
     private BukkitRunnable task;
 
+    /**
+     * Create a new session that can be started, monitored, and ended.
+     *
+     * @param plugin     plugin context used to schedule tasks and fire events.
+     * @param duration   total session length in seconds.
+     * @param autoStart  whether the session was initiated automatically (metadata only).
+     */
     public Session(Plugin plugin, int duration, boolean autoStart) {
         this.plugin = plugin;
         this.duration = duration;
@@ -44,16 +51,30 @@ public class Session {
     // Static hook API
     // ------------------------------------------------------------------------
 
+    /**
+     * Register a callback that can override or extend the default end sequence.
+     * Duplicate hooks are ignored.
+     *
+     * @param hook consumer invoked when the end sequence begins.
+     */
     public static void registerEndHook(SessionEndHook hook) {
         if (hook != null && !END_HOOKS.contains(hook)) {
             END_HOOKS.add(hook);
         }
     }
 
+    /**
+     * Remove a previously registered end hook.
+     *
+     * @param hook hook instance to remove.
+     */
     public static void unregisterEndHook(SessionEndHook hook) {
         END_HOOKS.remove(hook);
     }
 
+    /**
+     * Clear all registered end hooks, restoring default end behavior only.
+     */
     public static void clearEndHooks() {
         END_HOOKS.clear();
     }
@@ -62,6 +83,10 @@ public class Session {
     // Core session logic
     // ------------------------------------------------------------------------
 
+    /**
+     * Start the session timer and broadcast a start notification.
+     * Any existing task is cancelled before a new one is scheduled.
+     */
     public void start() {
         if (running) return;
         if (task != null) {
@@ -85,6 +110,9 @@ public class Session {
         task.runTaskTimer(plugin, 20L, 20L); // every second
     }
 
+    /**
+     * Advance the timer by one second, emitting warnings and triggering the end sequence when needed.
+     */
     private void tick() {
         if (!running) return;
 
@@ -130,8 +158,8 @@ public class Session {
     }
 
     /**
-     * Public control method: begin the end sequence.
-     * Other plugins can call this instead of waiting for the timer.
+     * Begin the configured end sequence, notifying listeners and allowing hooks to override behavior.
+     * Other plugins can invoke this to bypass waiting for the timer to expire.
      */
     public void beginEndSequence() {
         if (endingSequence) return;
@@ -178,8 +206,7 @@ public class Session {
     }
 
     /**
-     * Immediately end the session and shut down the server.
-     * Hooks / other plugins can call this if they want to skip the minute.
+     * Immediately terminate the session, bypassing the grace period countdown.
      */
     public void forceEndNow() {
         if (!running) return;
@@ -189,6 +216,9 @@ public class Session {
         end();
     }
 
+    /**
+     * Finalize the session by stopping timers, emitting the end event, and incrementing the counter.
+     */
     public void end() {
         running = false;
 
@@ -204,6 +234,9 @@ public class Session {
         //Bukkit.getScheduler().runTaskLater(plugin, Bukkit::shutdown, 20L);
     }
 
+    /**
+     * Cancel any running task and restore the timer to its initial state without firing events.
+     */
     public void stopSession() {
         if (task != null) task.cancel();
         running = false;
@@ -211,10 +244,18 @@ public class Session {
         timeLeft = duration;
     }
 
+    /**
+     * Reset the timer to the full duration while leaving the running state unchanged.
+     */
     public void reset() {
         timeLeft = duration;
     }
 
+    /**
+     * Broadcast a message to all players if the text is present.
+     *
+     * @param message text to broadcast; ignored if null or empty.
+     */
     private void broadcastMessage(String message) {
         if (message == null || message.isEmpty()) return;
         Bukkit.getServer().broadcastMessage(message);
@@ -224,22 +265,47 @@ public class Session {
     // Getters for other plugins
     // ------------------------------------------------------------------------
 
+    /**
+     * Retrieve the remaining seconds before the end sequence is triggered.
+     *
+     * @return seconds left in the session countdown.
+     */
     public int getTimeLeft() {
         return timeLeft;
     }
 
+    /**
+     * Get the configured full duration of this session.
+     *
+     * @return session duration in seconds.
+     */
     public int getDuration() {
         return duration;
     }
 
+    /**
+     * Determine whether the session is currently active.
+     *
+     * @return true when the timer is running.
+     */
     public boolean isRunning() {
         return running;
     }
 
+    /**
+     * Check if the end sequence countdown is underway.
+     *
+     * @return true when the session is in its shutdown grace period.
+     */
     public boolean isEndingSequence() {
         return endingSequence;
     }
 
+    /**
+     * Identify whether this session originated from an auto-start trigger.
+     *
+     * @return true if auto-started; false for manual starts.
+     */
     public boolean isAutoStartSession() {
         return autoStartSession;
     }

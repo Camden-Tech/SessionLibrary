@@ -7,12 +7,11 @@ import me.BaddCamden.SessionLibrary.Session;
 public interface SessionEndHook {
 
     /**
-     * Called when a session's end sequence starts.
+     * Invoked when the session begins its end sequence, allowing custom shutdown logic.
      *
      * @param session The Session that is ending.
-     * @return true if this hook fully handled the end sequence and
-     *         the default 60-second countdown + shutdown should be skipped.
-     *         false to let other hooks / default logic continue.
+     * @return true to signal that the hook completed all required shutdown behavior and the
+     *         default countdown should be skipped; false to allow additional hooks or default logic.
      */
     boolean handleEndSequence(Session session);
 }

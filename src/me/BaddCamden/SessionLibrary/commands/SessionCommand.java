@@ -18,10 +18,24 @@ public class SessionCommand implements CommandExecutor, TabCompleter {
 
     private final SessionManager plugin;
 
+    /**
+     * Construct the command handler with access to the plugin context.
+     *
+     * @param plugin owning plugin used for session control.
+     */
     public SessionCommand(SessionManager plugin) {
         this.plugin = plugin;
     }
 
+    /**
+     * Handle execution of the /session command, allowing administrators to manage sessions.
+     *
+     * @param sender originator of the command.
+     * @param cmd    command instance.
+     * @param label  label used.
+     * @param args   arguments supplied by the sender.
+     * @return true once processing is complete.
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
@@ -145,6 +159,15 @@ public class SessionCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /**
+     * Provide tab completion hints for the /session command.
+     *
+     * @param sender command source requesting completions.
+     * @param command command being completed.
+     * @param alias alias used for the command.
+     * @param args arguments already supplied.
+     * @return list of suggested completions.
+     */
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("sessionlibrary.admin")) {

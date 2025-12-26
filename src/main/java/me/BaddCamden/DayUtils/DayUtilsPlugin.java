@@ -16,6 +16,9 @@ public class DayUtilsPlugin extends JavaPlugin {
 
     private DayUtilsConfiguration configuration;
 
+    /**
+     * Load configuration defaults and prepare the DayUtils configuration helper.
+     */
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -23,6 +26,9 @@ public class DayUtilsPlugin extends JavaPlugin {
         configuration.load();
     }
 
+    /**
+     * Persist configuration settings back to disk when the plugin shuts down.
+     */
     @Override
     public void onDisable() {
         if (configuration != null) {
@@ -30,6 +36,15 @@ public class DayUtilsPlugin extends JavaPlugin {
         }
     }
 
+    /**
+     * Dispatch commands to the appropriate DayUtils handlers.
+     *
+     * @param sender  command originator.
+     * @param command executed command.
+     * @param label   alias used.
+     * @param args    arguments supplied.
+     * @return true if a DayUtils command was handled.
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("dayutilsreload")) {
@@ -43,6 +58,12 @@ public class DayUtilsPlugin extends JavaPlugin {
         return false;
     }
 
+    /**
+     * Reload DayUtils configuration files on demand.
+     *
+     * @param sender user requesting the reload.
+     * @return true once processing is complete.
+     */
     private boolean handleReload(CommandSender sender) {
         if (!sender.hasPermission("dayutils.reload")) {
             sender.sendMessage("§cYou do not have permission to reload DayUtils.");
@@ -55,6 +76,12 @@ public class DayUtilsPlugin extends JavaPlugin {
         return true;
     }
 
+    /**
+     * Report the current date and session day counter to either the sender or the whole server.
+     *
+     * @param sender user requesting the status message.
+     * @return true once processing is complete.
+     */
     private boolean handleStatus(CommandSender sender) {
         if (!sender.hasPermission("dayutils.status")) {
             sender.sendMessage("§cYou do not have permission to use this command.");
@@ -84,6 +111,11 @@ public class DayUtilsPlugin extends JavaPlugin {
         return true;
     }
 
+    /**
+     * Attempt to read the day counter from the SessionLibrary plugin.
+     *
+     * @return day counter value, or -1 if unavailable.
+     */
     private int fetchDayCounter() {
         Plugin dependency = Bukkit.getPluginManager().getPlugin("SessionLibrary");
         if (dependency == null) {
